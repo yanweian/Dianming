@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="5dp"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:paddingTop="5dp">
+
+    <RelativeLayout
+        android:id="@+id/stu_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/goodstu_no"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="学号"
+            android:textSize="20sp"
+            />
+
+        <TextView
+            android:id="@+id/goodstu_class"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:text="班级"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/goodstu_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/goodstu_no"
+            android:text="姓名"
+            android:textSize="20sp"/>
+
+        <TextView
+            android:id="@+id/text1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/goodstu_name"
+            android:layout_below="@id/goodstu_no"
+            android:layout_centerHorizontal="true"
+            android:text="恶意记录: "/>
+
+        <TextView
+            android:id="@+id/goodbadcount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/goodstu_name"
+            android:layout_below="@id/goodstu_no"
+            android:layout_centerHorizontal="true"
+            android:layout_toRightOf="@id/text1"
+            android:text="恶意记录"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/detaillayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/stu_info"
+        android:layout_marginTop="10dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:text="无点名记录"/>
+
+        <ListView
+            android:id="@+id/goodlistview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#b0b0b0">
+        </ListView>
+    </RelativeLayout>
+</RelativeLayout>

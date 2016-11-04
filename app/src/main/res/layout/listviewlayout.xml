@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="5dp"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:paddingTop="5dp">
+
+    <RelativeLayout
+        android:id="@+id/stu_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/stu_no"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="学号"
+            android:textSize="20sp"
+            />
+        <TextView
+            android:textSize="20sp"
+            android:layout_alignParentRight="true"
+            android:id="@+id/stu_class"
+            android:text="班级"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/stu_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/stu_no"
+            android:text="姓名"
+            android:textSize="20sp"/>
+        <TextView
+            android:layout_alignBaseline="@id/stu_name"
+            android:layout_centerHorizontal="true"
+            android:text="恶意记录: "
+            android:id="@+id/otext1"
+            android:layout_below="@id/stu_no"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:layout_alignBaseline="@id/stu_name"
+            android:layout_centerHorizontal="true"
+            android:text="恶意记录"
+            android:id="@+id/badcount"
+            android:layout_toRightOf="@id/otext1"
+            android:layout_below="@id/stu_no"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:layout_below="@id/stu_no"
+            android:id="@+id/stu_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:text="状态"
+            android:textSize="23sp"/>
+    </RelativeLayout>
+</RelativeLayout>

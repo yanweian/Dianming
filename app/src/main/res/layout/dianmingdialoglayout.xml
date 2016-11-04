@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/zhaopian"
+            android:layout_width="100dp"
+            android:layout_height="120dp"
+            android:src="@mipmap/ic_launcher"
+            />
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="10dp"
+            >
+
+            <TextView
+                android:id="@+id/xuehao"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="631406010230"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:id="@+id/xinming"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/xuehao"
+                android:layout_marginTop="10dp"
+                android:text="严伟安"
+                android:textSize="20sp"/>
+
+            <TextView
+                android:id="@+id/banji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/xinming"
+                android:layout_marginTop="10dp"
+                android:text="计科1402班"
+                android:textSize="20sp"/>
+        </RelativeLayout>
+    </RelativeLayout>
+
+    <RadioGroup
+        android:layout_marginTop="10dp"
+        android:id="@+id/radio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/relativeLayout">
+
+        <RadioButton
+            android:id="@+id/status1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="全勤"
+            android:textSize="20sp"/>
+
+        <RadioButton
+            android:id="@+id/status2"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="迟到"
+            android:textSize="20sp"/>
+
+        <RadioButton
+            android:id="@+id/status3"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="早退"
+            android:textSize="20sp"/>
+
+        <RadioButton
+            android:id="@+id/status4"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="旷课"
+            android:textSize="20sp"/>
+
+        <RadioButton
+            android:id="@+id/status5"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="请假"
+            android:textSize="20sp"/>
+    </RadioGroup>
+
+</RelativeLayout>

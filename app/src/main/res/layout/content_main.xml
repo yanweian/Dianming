@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.yan.dianming.MainActivity"
+    tools:showIn="@layout/activity_main">
+
+    <LinearLayout
+        android:id="@+id/searchlayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
+
+        <EditText
+            android:id="@+id/edit_search"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="11"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:hint="搜索学号、姓名、班级...."/>
+
+       <ImageView
+           android:layout_gravity="center"
+           android:layout_weight="1"
+           android:id="@+id/imagesearch"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:src="@android:drawable/ic_menu_search"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textinfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/searchlayout"
+        android:padding="16dp"
+        android:text="@string/info"/>
+
+    <TextView
+        android:layout_below="@id/searchlayout"
+        android:text="共几条记录"
+        android:id="@+id/counttext"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <ListView
+        android:id="@+id/listview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/counttext"
+        android:background="#ffffff"></ListView>
+</RelativeLayout>
