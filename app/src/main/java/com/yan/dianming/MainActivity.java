@@ -235,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
                         mListView_little.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                             @Override
                             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                                listviewmethod=flagsousuo;
                                 initdianming(position);
                                 mAlertDialog_dianming.show();
                             }
