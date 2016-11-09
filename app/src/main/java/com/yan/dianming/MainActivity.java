@@ -28,6 +28,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -65,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     private ListView mListView_main;
     private MyAdapter mMyAdapterstu;
     private SQLiteDatabase mSQLiteDatabase;
-    private AlertDialog mAlertDialog_select, mAlertDialog_class;
+    private AlertDialog mAlertDialog_select, mAlertDialog_class, mAlertDialog_bianji;
     private List<String> mListclass;
     private String[] classes;
     private boolean ischanged = false;
@@ -246,8 +247,11 @@ public class MainActivity extends AppCompatActivity {
         mListView_main.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-
-                return false;
+                if (listviewmethod.equals(flagsousuo)) {
+                    bianjiAlertDialog(position);
+                    mAlertDialog_bianji.show();
+                }
+                return true;
             }
         });
         mMyAdaptersearch = new MyAdaptersearch(this, mStudents);
@@ -388,6 +392,176 @@ public class MainActivity extends AppCompatActivity {
         }
         getClasses();
         initAlertDialog();
+    }
+
+    //是否编辑
+    private boolean isbianji = false;
+
+    /*初始化编辑信息对话框*/
+    private void bianjiAlertDialog(final int position) {
+        final Student student = mStudents.get(position);
+        builder = new AlertDialog.Builder(MainActivity.this);
+        View v = LayoutInflater.from(MainActivity.this).inflate(R.layout.bianjilayout, null);
+        final Button button_del = (Button) v.findViewById(R.id.btdel);
+        final Button button_bianji = (Button) v.findViewById(R.id.btbianji);
+        final Button button_queding = (Button) v.findViewById(R.id.btqueding);
+        final EditText editTextxuehao = (EditText) v.findViewById(R.id.editxuehao);
+        editTextxuehao.setText(student.getStu_no());
+        final EditText editTextxinming = (EditText) v.findViewById(R.id.editxinming);
+        editTextxinming.setText(student.getStu_name());
+        final EditText editTextbanji = (EditText) v.findViewById(R.id.editbanji);
+        editTextbanji.setText(student.getStu_class());
+        final ImageView bianjiimageView = (ImageView) v.findViewById(R.id.bianjizhaopian);
+        bianjiimageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                initimage();
+                mAlertDialog_image.show();
+            }
+        });
+        bianjiimageView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                /*拍照*/
+                nowstuno = student.getStu_no();
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);//调用android自带的照相机
+                imgPath = "/sdcard/test/img.jpg";
+                File vFile = new File(imgPath);
+                if (!vFile.exists()) {
+                    File vDirPath = vFile.getParentFile(); //new File(vFile.getParent());
+                    vDirPath.mkdirs();
+                }
+                Uri uri = Uri.fromFile(vFile);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);//
+                startActivityForResult(intent, 1);
+                return true;
+            }
+        });
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                abitmap = getbitmap(student.getStu_no());
+                if (abitmap != null) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            bianjiimageView.setImageBitmap(abitmap);
+                        }
+                    });
+                }
+            }
+        }).start();
+        //删除
+        button_del.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
+                builder1.setMessage("确定删除" + student.getStu_no() + "（" + student.getStu_name() + "）么？");
+                builder1.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //确定删除
+                        String sno = student.getStu_no();
+                        int re = mSQLiteDatabase.delete("studenttb", "student_no=?", new String[]{sno});
+                        int res = mSQLiteDatabase.delete("dianmingtb", "stu_no=?", new String[]{sno});
+                        if (re > 0 && res > 0) {
+                            Toast.makeText(MainActivity.this, "删除成功！", Toast.LENGTH_LONG).show();
+                            mAlertDialog_bianji.dismiss();
+                            mStudents.remove(position);
+                            mMyAdaptersearch.notifyDataSetChanged();
+                            mTextView_count.setText("共" + mStudents.size() + "条记录");
+                        }
+                    }
+                });
+                builder1.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                });
+                AlertDialog alertDialog = builder1.create();
+                alertDialog.show();
+            }
+        });
+        //编辑
+        button_bianji.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!isbianji) {
+                    isbianji = !isbianji;
+                    button_bianji.setText("保存");
+                    editTextxinming.setFocusable(true);
+                    editTextxinming.setFocusableInTouchMode(true);
+                    editTextbanji.setFocusable(true);
+                    editTextbanji.setFocusableInTouchMode(true);
+                } else {
+                    isbianji = !isbianji;
+                    button_bianji.setText("编辑");
+                    editTextxinming.setFocusable(false);
+                    editTextxinming.setFocusableInTouchMode(false);
+                    editTextbanji.setFocusable(false);
+                    editTextbanji.setFocusableInTouchMode(false);
+                    String sname = editTextxinming.getText().toString();
+                    String sbanji = editTextbanji.getText().toString();
+                    student.setStu_name(sname);
+                    student.setStu_class(sbanji);
+                    updatestudent(student);
+                    publishstudent(position);
+                }
+            }
+        });
+        //确定
+        button_queding.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isbianji) {
+                    AlertDialog.Builder builder1 = new AlertDialog.Builder(MainActivity.this);
+                    builder1.setMessage("是否保存修改的数据？");
+                    builder1.setPositiveButton("保存", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            //保存
+                            String sname = editTextxinming.getText().toString();
+                            String sbanji = editTextbanji.getText().toString();
+                            student.setStu_name(sname);
+                            student.setStu_class(sbanji);
+                            updatestudent(student);
+                            publishstudent(position);
+                        }
+                    });
+                    builder1.setNegativeButton("不保存", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    });
+                    AlertDialog alertDialog = builder1.create();
+                    alertDialog.show();
+                }
+                mAlertDialog_bianji.dismiss();
+            }
+        });
+        builder.setView(v);
+        mAlertDialog_bianji = builder.create();
+    }
+
+    private void updatestudent(Student student) {
+        String sno = student.getStu_no();
+        String sname = student.getStu_name();
+        String sbanji = student.getStu_class();
+       /*db.execSQL("create table if not exists studenttb(student_no text primary key ," +
+                "student_name text not null," +
+                "student_class text not null," +
+                "student_score double," +
+                "bad double not null," +
+                "image blob)");*/
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("student_name", sname);
+        contentValues.put("student_class", sbanji);
+        int re = mSQLiteDatabase.update("studenttb", contentValues, "student_no=?", new String[]{sno});
+        if (re > 0) {
+            Toast.makeText(MainActivity.this, "更新成功！", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(MainActivity.this, "更新失败！", Toast.LENGTH_LONG).show();
+        }
     }
 
     /*初始化文件浏览对话框*/
@@ -676,7 +850,7 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(MainActivity.this,"正在处理图像...",Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "正在处理图像...", Toast.LENGTH_LONG).show();
             }
         });
         ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
@@ -694,7 +868,7 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(MainActivity.this,"图片添加成功！",Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "图片添加成功！", Toast.LENGTH_LONG).show();
                 }
             });
             Log.i("sno", nowstuno + "图片添加成功！");
@@ -702,7 +876,7 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Toast.makeText(MainActivity.this,"图片添加失败！",Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "图片添加失败！", Toast.LENGTH_LONG).show();
                 }
             });
             Log.i("sno", nowstuno + "图片添加失败！");
@@ -735,6 +909,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private Bitmap getbitmap(String sno) {
+        //此处为获取照片的代码
+                /*从数据库中取出图片*/
+        String sql = "select image from studenttb where student_no='" + sno + "'";
+        Cursor cursor = mSQLiteDatabase.rawQuery(sql, null);
+        int count = cursor.getCount();
+        Bitmap bitmap = null;
+        Log.i("sno", "查询出的学生记录" + count);
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                byte[] bytes = cursor.getBlob(cursor.getColumnIndex("image"));
+                Log.i("sno", "图片是否为null" + (bytes == null));
+                if (bytes != null) {
+                    bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                }
+            }
+        }
+        cursor.close();
+        return bitmap;
+    }
+
     /*点名弹窗的初始化*/
     private void initdianming(final int position) {
         builder = new AlertDialog.Builder(MainActivity.this);
@@ -751,23 +946,26 @@ public class MainActivity extends AppCompatActivity {
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (abitmap == null) {
-                    /*拍照*/
-                    nowstuno = studentdianming.getStu_no();
-                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);//调用android自带的照相机
-                    imgPath = "/sdcard/test/img.jpg";
-                    File vFile = new File(imgPath);
-                    if (!vFile.exists()) {
-                        File vDirPath = vFile.getParentFile(); //new File(vFile.getParent());
-                        vDirPath.mkdirs();
-                    }
-                    Uri uri = Uri.fromFile(vFile);
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);//
-                    startActivityForResult(intent, 1);
-                } else {
-                    initimage();
-                    mAlertDialog_image.show();
+                initimage();
+                mAlertDialog_image.show();
+            }
+        });
+        imageView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                /*拍照*/
+                nowstuno = studentdianming.getStu_no();
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);//调用android自带的照相机
+                imgPath = "/sdcard/test/img.jpg";
+                File vFile = new File(imgPath);
+                if (!vFile.exists()) {
+                    File vDirPath = vFile.getParentFile(); //new File(vFile.getParent());
+                    vDirPath.mkdirs();
                 }
+                Uri uri = Uri.fromFile(vFile);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);//
+                startActivityForResult(intent, 1);
+                return true;
             }
         });
         abitmap = null;
@@ -776,27 +974,15 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 //此处为获取照片的代码
                 /*从数据库中取出图片*/
-                String sql = "select image from studenttb where student_no='" + studentdianming.getStu_no() + "'";
-                Cursor cursor = mSQLiteDatabase.rawQuery(sql, null);
-                int count = cursor.getCount();
-                Log.i("sno", "查询出的学生记录" + count);
-                if (cursor != null) {
-                    while (cursor.moveToNext()) {
-                        byte[] bytes = cursor.getBlob(cursor.getColumnIndex("image"));
-                        Log.i("sno", "图片是否为null" + (bytes == null));
-                        if (bytes != null) {
-                            final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                            abitmap = bitmap;
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    imageView.setImageBitmap(bitmap);
-                                }
-                            });
+                abitmap = getbitmap(studentdianming.getStu_no());
+                if (abitmap != null) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            imageView.setImageBitmap(abitmap);
                         }
-                    }
+                    });
                 }
-                cursor.close();
             }
         }).start();
         int index = 0;
@@ -945,6 +1131,19 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             Toast.makeText(this, "更新失败，数据库错误！", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void publishstudent(int position) {
+        //只有当视图在可见区域的时候才改变
+        if (position >= mListView_main.getFirstVisiblePosition() && position <= mListView_main.getLastVisiblePosition()) {
+            int positionInlistview = position - mListView_main.getFirstVisiblePosition();
+            View view = mListView_main.getChildAt(positionInlistview);
+            Student mItem = mStudents.get(position);
+            TextView textView = (TextView) view.findViewById(R.id.goodstu_class);
+            TextView textViewcount = (TextView) view.findViewById(R.id.goodstu_name);
+            textView.setText(mItem.getStu_class());
+            textViewcount.setText(mItem.getStu_name() + "");
         }
     }
 

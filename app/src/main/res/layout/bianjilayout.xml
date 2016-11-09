@@ -1,5 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp">
 
+
+    <ImageView
+        android:layout_centerHorizontal="true"
+        android:id="@+id/bianjizhaopian"
+        android:layout_width="150dp"
+        android:layout_height="200dp"
+        android:src="@drawable/moren" />
+
+
+    <RelativeLayout
+        android:id="@+id/xinxilayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/bianjizhaopian"
+        android:layout_marginTop="20dp">
+
+
+        <TextView
+            android:id="@+id/bianjixuehao"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:text="学号："
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/editxuehao"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/bianjixuehao"
+            android:layout_toRightOf="@id/bianjixuehao"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
+
+        <TextView
+            android:id="@+id/bianjixinming"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/bianjixuehao"
+            android:layout_marginTop="15dp"
+            android:text="姓名："
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/editxinming"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/bianjixinming"
+            android:layout_toRightOf="@id/bianjixinming"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
+
+        <TextView
+            android:id="@+id/bianjibanji"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/bianjixinming"
+            android:layout_marginTop="15dp"
+            android:text="班级："
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/editbanji"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/bianjixinming"
+            android:layout_toRightOf="@id/bianjibanji"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:layout_marginTop="6dp"/>
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/xinxilayout"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btdel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="删除"
+            android:textColor="#b91b1b" />
+
+        <Button
+            android:id="@+id/btbianji"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="编辑" />
+
+        <Button
+            android:id="@+id/btqueding"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="确定" />
+    </LinearLayout>
 </RelativeLayout>
