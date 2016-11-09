@@ -412,15 +412,15 @@ public class MainActivity extends AppCompatActivity {
         editTextxinming.setText(student.getStu_name());
         final EditText editTextbanji = (EditText) v.findViewById(R.id.editbanji);
         editTextbanji.setText(student.getStu_class());
-        final ImageView bianjiimageView = (ImageView) v.findViewById(R.id.bianjizhaopian);
-        bianjiimageView.setOnClickListener(new View.OnClickListener() {
+        imageView = (ImageView) v.findViewById(R.id.bianjizhaopian);
+        imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 initimage();
                 mAlertDialog_image.show();
             }
         });
-        bianjiimageView.setOnLongClickListener(new View.OnLongClickListener() {
+        imageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 /*拍照*/
@@ -446,7 +446,7 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            bianjiimageView.setImageBitmap(abitmap);
+                            imageView.setImageBitmap(abitmap);
                         }
                     });
                 }
