@@ -42,8 +42,9 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("create table if not exists studenttb(student_no text primary key ," +
                 "student_name text not null," +
                 "student_class text not null," +
-                "student_score double null," +
-                "bad double not null)");
+                "student_score double," +
+                "bad double not null," +
+                "image blob)");
         //点名表
         db.execSQL("create table if not exists dianmingtb(stu_no text not null," +
                 "week text not null," +

@@ -1,15 +1,19 @@
 package com.yan.dianming;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -35,8 +39,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -45,6 +51,8 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import static android.widget.Toast.LENGTH_SHORT;
+import static com.yan.dianming.BitmapProcess.readPictureDegree;
+import static com.yan.dianming.BitmapProcess.rotaingImageView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -57,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private ListView mListView_main;
     private MyAdapter mMyAdapterstu;
     private SQLiteDatabase mSQLiteDatabase;
-    private AlertDialog mAlertDialog_select, mAlertDialog_class, mAlertDialog_method;
+    private AlertDialog mAlertDialog_select, mAlertDialog_class;
     private List<String> mListclass;
     private String[] classes;
     private boolean ischanged = false;
@@ -78,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean flag = true;
     private String week = "第1周";
     private String classno = "第一次课";
-    private String dianmingmethod = "全点";
     private String setting = "";
     private String touxiangpath = "";
 
@@ -92,6 +99,9 @@ public class MainActivity extends AppCompatActivity {
     private final String flagdianming = "dianming";
     private final String flagsousuo = "sousuo";
     private RelativeLayout mRelativeLayout;
+
+    private String nowstuno = "";
+    String imgPath = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         init();
-        Toast.makeText(this, touxiangpath, Toast.LENGTH_LONG).show();
+//        Toast.makeText(this, touxiangpath, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -175,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
                 mStudents.add(student);
             }
         }
+        cursor.close();
     }
 
     private void init() {
@@ -182,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
         mStudentdianmings = new ArrayList<>();
         mStudentMap = new TreeMap<>();
         mSQLiteDatabase = new DBHelper(this).getWritableDatabase();
-        /*获取头像路径*/
+        /*获取头像路径*//*
         Cursor cursor = mSQLiteDatabase.rawQuery("select *from settingtb where kind='touxiangpath'", null);
         if (cursor != null) {
             if (cursor.getCount() > 0) {
@@ -191,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
                     touxiangpath = cursor.getString(cursor.getColumnIndex(names[1]));
                 }
             }
-        }
+        }*/
         setTitle("欢迎使用！");
         mFiles = new ArrayList<>();
         mGestureDetector = new GestureDetector(this, new MyGestureListener());
@@ -208,7 +219,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (listviewmethod.equals(flagdianming)) {
-                    dianmingmethod = "自由点";
                     initdianming(position);
                     mAlertDialog_dianming.show();
                 } else if (listviewmethod.equals(flagsousuo)) {
@@ -224,7 +234,6 @@ public class MainActivity extends AppCompatActivity {
                         mListView_little.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                             @Override
                             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                                dianmingmethod = "自由点";
                                 initdianming(position);
                                 mAlertDialog_dianming.show();
                             }
@@ -234,13 +243,20 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        mListView_main.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
+                return false;
+            }
+        });
         mMyAdaptersearch = new MyAdaptersearch(this, mStudents);
         mEditText = (EditText) findViewById(R.id.edit_search);
         getImageView = (ImageView) findViewById(R.id.imagesearch);
         getImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try{
+                try {
                     String searchtext = mEditText.getText().toString();
                     getsearch(searchtext);
                     setTitle("搜索结果");
@@ -256,8 +272,8 @@ public class MainActivity extends AppCompatActivity {
                     listviewmethod = flagsousuo;
                     mTextView_info.setVisibility(View.GONE);
                     mListView_main.setVisibility(View.VISIBLE);
-                }catch (Exception e){
-                    Toast.makeText(MainActivity.this,"查询失败",Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "查询失败", Toast.LENGTH_LONG).show();
                 }
 
             }
@@ -306,6 +322,7 @@ public class MainActivity extends AppCompatActivity {
                     mStudentdianmings.add(studentdianming);
                 }
             }
+            cursor.close();
         } else {
             Toast.makeText(this, "未选择班级！", Toast.LENGTH_LONG).show();
         }
@@ -349,6 +366,7 @@ public class MainActivity extends AppCompatActivity {
                 classes[index++] = cursor.getString(cursor.getColumnIndex(names[0]));
             }
         }
+        cursor.close();
     }
 
     //插入数据到stutb
@@ -441,28 +459,81 @@ public class MainActivity extends AppCompatActivity {
         builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                boolean f = true;
-                if (touxiangpath.equals("")) {
-                    f = false;
-                }
                 touxiangpath = mTextView_dirpath.getText().toString();
                 /*        db.execSQL("create table if not exists settingtb
                 (kind text primary key,valuestring text not null)");
                 */
-                ContentValues contentValues = new ContentValues();
-                contentValues.put("kind", "touxiangpath");
-                contentValues.put("valuestring", touxiangpath);
-                if (!f) {
-                    mSQLiteDatabase.insert("settingtb", null, contentValues);
-                } else {
-                    mSQLiteDatabase.update("settingtb", contentValues, "kind='touxiangpath'", null);
+                List<File> imagefiles = DirUtil.getsubfiles(new File(touxiangpath));
+                if (imagefiles != null) {
+                    for (int i = 0; i < imagefiles.size(); i++) {
+                        final File file = imagefiles.get(i);
+                        //创建线程来处理图像的插入
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    InsertImage(file);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }).start();
+                    }
+                    Toast.makeText(MainActivity.this, "设置完成!", Toast.LENGTH_LONG).show();
                 }
-                Toast.makeText(MainActivity.this, "设置完成!", Toast.LENGTH_LONG).show();
             }
         });
         mAlertDialog = builder.create();
     }
 
+    /*插入学生的头像信息*/
+    private void InsertImage(File file) throws IOException {
+        //将头像信息保存到数据库中
+        /*
+        * 1.看数据库中是否有相应学生的信息
+        * 2.若有则添加进去
+        * 3.若没有，则放弃*/
+        String stringfilename = file.getName();
+        Log.i("sno", stringfilename);
+        String[] strings = stringfilename.split("-");
+        if (strings != null && strings.length > 2) {
+            final String stuno = strings[1];
+            Log.i("sno", stuno);
+            //strings[1]是学号
+                /*db.execSQL("create table if not exists studenttb(student_no text primary key ," +
+                "student_name text not null," +
+                "student_class text not null," +
+                "student_score double," +
+                "bad double not null," +
+                "image blob)");*/
+            FileInputStream fileInputStream = new FileInputStream(file);
+            byte[] bytes = new byte[1024 * 8];
+            ArrayList<Byte> bytesarray = new ArrayList<>();
+            int count;
+            while ((count = fileInputStream.read(bytes)) != -1) {
+                for (int i = 0; i < count; i++) {
+                    bytesarray.add(bytes[i]);
+                }
+            }
+            int size = bytesarray.size();
+            if (size > 2 * 1024 * 1024) {
+                Log.i("sno", stuno + "图片太大,未导入！");
+            } else {
+                bytes = new byte[size];
+                for (int i = 0; i < size; i++) {
+                    bytes[i] = bytesarray.get(i);
+                }
+                ContentValues ContentValues = new ContentValues();
+                ContentValues.put("image", bytes);
+                int re = mSQLiteDatabase.update("studenttb", ContentValues, "student_no=?", new String[]{stuno});
+                if (re > 0) {
+                    Log.i("sno", stuno + "图片添加成功！");
+                } else {
+                    Log.i("sno", stuno + "图片添加失败！");
+                }
+            }
+        }
+    }
 
     //初始化点名信息录入弹窗
     private void initAlertDialog() {
@@ -485,7 +556,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 getstartstudent(mListclass, week, classno);
-                mAlertDialog_method.show();
                 mListView_main.setAdapter(mMyAdapterstu);
                 listviewmethod = flagdianming;
                 mTextView_info.setVisibility(View.GONE);
@@ -526,27 +596,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         mAlertDialog_select = builder.create();
-
-        builder = new AlertDialog.Builder(this);
-        builder.setTitle("怎么点名？");
-        final String[] strings = new String[]{"全点", "自由点"};
-        dianmingmethod="全点";
-        builder.setSingleChoiceItems(strings, 0, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dianmingmethod = strings[which];
-            }
-        });
-        builder.setPositiveButton("开始点名！", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (dianmingmethod.equals("全点")) {
-                    initdianming(0);
-                    mAlertDialog_dianming.show();
-                }
-            }
-        });
-        mAlertDialog_method = builder.create();
     }
 
 
@@ -575,12 +624,8 @@ public class MainActivity extends AppCompatActivity {
             Cursor cursor = mSQLiteDatabase.rawQuery(sql, null);
             if (cursor != null) {
                 int count = cursor.getCount();
-                if (count <= 0) {
-                    Toast.makeText(this, "没有查到信息！", Toast.LENGTH_LONG).show();
-                }
-                String[] names = cursor.getColumnNames();
                 while (cursor.moveToNext()) {
-                    String stu_no = cursor.getString(cursor.getColumnIndex(names[0]));
+                    String stu_no = cursor.getString(cursor.getColumnIndex("student_no"));
                     //插入到dianmingtb中
                     ContentValues contentValues = new ContentValues();
                     contentValues.put("stu_no", stu_no);
@@ -590,7 +635,7 @@ public class MainActivity extends AppCompatActivity {
                     mSQLiteDatabase.insert("dianmingtb", null, contentValues);
                 }
             }
-
+            cursor.close();
 
             sql = "select student_no,student_name,student_class," +
                     "student_score,status,bad from studenttb,dianmingtb " +
@@ -620,12 +665,77 @@ public class MainActivity extends AppCompatActivity {
                     mStudentdianmings.add(studentdianming);
                 }
             }
+            cursor.close();
         } else {
             Toast.makeText(this, "未选择班级！", Toast.LENGTH_LONG).show();
         }
         mMyAdapterstu.notifyDataSetChanged();
     }
 
+    private void InsertImage(Bitmap bitmap) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this,"正在处理图像...",Toast.LENGTH_LONG).show();
+            }
+        });
+        ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, arrayOutputStream);
+        while (arrayOutputStream.size() > 2 * 1024 * 1024) {
+            bitmap = BitmapProcess.ratio(bitmap, 480f, 640f);
+            arrayOutputStream.reset();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, arrayOutputStream);
+        }
+        Log.i("sno", arrayOutputStream.size() + "大小");
+        ContentValues ContentValues = new ContentValues();
+        ContentValues.put("image", arrayOutputStream.toByteArray());
+        int re = mSQLiteDatabase.update("studenttb", ContentValues, "student_no=?", new String[]{nowstuno});
+        if (re > 0) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(MainActivity.this,"图片添加成功！",Toast.LENGTH_LONG).show();
+                }
+            });
+            Log.i("sno", nowstuno + "图片添加成功！");
+        } else {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(MainActivity.this,"图片添加失败！",Toast.LENGTH_LONG).show();
+                }
+            });
+            Log.i("sno", nowstuno + "图片添加失败！");
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
+            abitmap = BitmapFactory.decodeFile(imgPath, null);
+            /**
+             * 把图片旋转为正的方向
+             */
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    int degree = readPictureDegree(imgPath);
+                    abitmap = rotaingImageView(degree, abitmap);
+                    InsertImage(abitmap);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            imageView.setImageBitmap(abitmap);
+                        }
+                    });
+                }
+            }).start();
+
+        }
+    }
+
+    /*点名弹窗的初始化*/
     private void initdianming(final int position) {
         builder = new AlertDialog.Builder(MainActivity.this);
         final Studentdianming studentdianming = mStudentdianmings.get(position);
@@ -641,42 +751,52 @@ public class MainActivity extends AppCompatActivity {
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                initimage();
-                mAlertDialog_image.show();
+                if (abitmap == null) {
+                    /*拍照*/
+                    nowstuno = studentdianming.getStu_no();
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);//调用android自带的照相机
+                    imgPath = "/sdcard/test/img.jpg";
+                    File vFile = new File(imgPath);
+                    if (!vFile.exists()) {
+                        File vDirPath = vFile.getParentFile(); //new File(vFile.getParent());
+                        vDirPath.mkdirs();
+                    }
+                    Uri uri = Uri.fromFile(vFile);
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);//
+                    startActivityForResult(intent, 1);
+                } else {
+                    initimage();
+                    mAlertDialog_image.show();
+                }
             }
         });
         abitmap = null;
         new Thread(new Runnable() {
             @Override
             public void run() {
-        /*此处为获取照片的代码*/
-                if (touxiangpath != "") {
-                    File file = new File(touxiangpath);
-                    File[] files = file.listFiles();
-                    if (files.length > 0) {
-                        for (int i = 0; i < files.length; i++) {
-                            String filename = files[i].getName();
-                            if (filename.contains(".")) {
-                                filename = filename.substring(0, filename.lastIndexOf("."));
-                            }
-                            if (filename.equals(studentdianming.getStu_no())) {
-                                try {
-                                    abitmap = BitmapFactory.decodeStream(new FileInputStream(files[i]));
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            imageView.setImageBitmap(abitmap);
-                                        }
-                                    });
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                    Toast.makeText(MainActivity.this, "头像导入错误！", Toast.LENGTH_LONG).show();
+                //此处为获取照片的代码
+                /*从数据库中取出图片*/
+                String sql = "select image from studenttb where student_no='" + studentdianming.getStu_no() + "'";
+                Cursor cursor = mSQLiteDatabase.rawQuery(sql, null);
+                int count = cursor.getCount();
+                Log.i("sno", "查询出的学生记录" + count);
+                if (cursor != null) {
+                    while (cursor.moveToNext()) {
+                        byte[] bytes = cursor.getBlob(cursor.getColumnIndex("image"));
+                        Log.i("sno", "图片是否为null" + (bytes == null));
+                        if (bytes != null) {
+                            final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                            abitmap = bitmap;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    imageView.setImageBitmap(bitmap);
                                 }
-                                break;
-                            }
+                            });
                         }
                     }
                 }
+                cursor.close();
             }
         }).start();
         int index = 0;
@@ -725,70 +845,66 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         builder.setView(view);
-        if (dianmingmethod.equals("全点")) {
-            builder.setPositiveButton("下一个", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    if (ischanged) {
-                        ischanged = false;
-                        String sta = studentdianming.getStatus();
-                        double badcount = studentdianming.getBadcount();
-                        if ((oldstatus.equals("全勤")||oldstatus.equals("请假")) && (!sta.equals("全勤")&&!sta.equals("请假"))) {
-                            badcount = badcount + 1;
-                        } else if ((!oldstatus.equals("全勤")&&!oldstatus.equals("请假")) && (sta.equals("全勤")||sta.equals("请假"))) {
-                            badcount = badcount - 1;
-                        }
-                        if (listviewmethod.equals(flagsousuo)) {
-                            String stuno = studentdianming.getStu_no();
-                            int index = mStudents.indexOf(new Student(stuno, "", "", 0, 0));
-                            Student student = mStudents.get(index);
-                            student.setBad(badcount);
-                        }
-                        studentdianming.setBadcount(badcount);
-                        //更新数据库
-                        updatedianming(studentdianming);
-                        publishprogress(position);
+        builder.setNegativeButton("下一个", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (ischanged) {
+                    ischanged = false;
+                    String sta = studentdianming.getStatus();
+                    double badcount = studentdianming.getBadcount();
+                    if ((oldstatus.equals("全勤") || oldstatus.equals("请假")) && (!sta.equals("全勤") && !sta.equals("请假"))) {
+                        badcount = badcount + 1;
+                    } else if ((!oldstatus.equals("全勤") && !oldstatus.equals("请假")) && (sta.equals("全勤") || sta.equals("请假"))) {
+                        badcount = badcount - 1;
                     }
-                    int newposition = position;
-                    newposition++;
-                    if (newposition == mStudentdianmings.size()) {
-                        Toast.makeText(MainActivity.this, "点名完成!", Toast.LENGTH_LONG).show();
-                    } else {
-                        initdianming(newposition);
-                        mAlertDialog_dianming.show();
+                    if (listviewmethod.equals(flagsousuo)) {
+                        String stuno = studentdianming.getStu_no();
+                        int index = mStudents.indexOf(new Student(stuno, "", "", 0, 0));
+                        Student student = mStudents.get(index);
+                        student.setBad(badcount);
                     }
+                    studentdianming.setBadcount(badcount);
+                    //更新数据库
+                    updatedianming(studentdianming);
+                    publishprogress(position);
                 }
-            });
-        } else {
-            builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    if (ischanged) {
-                        ischanged = false;
-                        //更新数据库
-                        String sta = studentdianming.getStatus();
-                        double badcount = studentdianming.getBadcount();
-                        if ((oldstatus.equals("全勤")||oldstatus.equals("请假")) && (!sta.equals("全勤")&&!sta.equals("请假"))) {
-                            badcount = badcount + 1;
-                        } else if ((!oldstatus.equals("全勤")&&!oldstatus.equals("请假")) && (sta.equals("全勤")||sta.equals("请假"))) {
-                            badcount = badcount - 1;
-                        }
-                        if (listviewmethod.equals(flagsousuo)) {
-                            String stuno = studentdianming.getStu_no();
-                            int index = mStudents.indexOf(new Student(stuno, "", "", 0, 0));
-                            Student student = mStudents.get(index);
-                            student.setBad(badcount);
-                        }
-                        studentdianming.setBadcount(badcount);
-                        updatedianming(studentdianming);
-                        publishprogress(position);
-                    }
+                int newposition = position;
+                newposition++;
+                if (newposition == mStudentdianmings.size()) {
+                    Toast.makeText(MainActivity.this, "点名完成!", Toast.LENGTH_LONG).show();
+                } else {
+                    initdianming(newposition);
+                    mAlertDialog_dianming.show();
                 }
-            });
-        }
+            }
+        });
+        builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (ischanged) {
+                    ischanged = false;
+                    //更新数据库
+                    String sta = studentdianming.getStatus();
+                    double badcount = studentdianming.getBadcount();
+                    if ((oldstatus.equals("全勤") || oldstatus.equals("请假")) && (!sta.equals("全勤") && !sta.equals("请假"))) {
+                        badcount = badcount + 1;
+                    } else if ((!oldstatus.equals("全勤") && !oldstatus.equals("请假")) && (sta.equals("全勤") || sta.equals("请假"))) {
+                        badcount = badcount - 1;
+                    }
+                    if (listviewmethod.equals(flagsousuo)) {
+                        String stuno = studentdianming.getStu_no();
+                        int index = mStudents.indexOf(new Student(stuno, "", "", 0, 0));
+                        Student student = mStudents.get(index);
+                        student.setBad(badcount);
+                    }
+                    studentdianming.setBadcount(badcount);
+                    updatedianming(studentdianming);
+                    publishprogress(position);
+                }
+            }
+        });
+
         mAlertDialog_dianming = builder.create();
-
-
     }
 
     private void initimage() {
@@ -910,6 +1026,7 @@ public class MainActivity extends AppCompatActivity {
                 mStudentdianmings.add(studentdianming);
             }
         }
+        cursor.close();
     }
 
 
