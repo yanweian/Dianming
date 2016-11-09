@@ -1031,39 +1031,41 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         builder.setView(view);
-        builder.setNegativeButton("下一个", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (ischanged) {
-                    ischanged = false;
-                    String sta = studentdianming.getStatus();
-                    double badcount = studentdianming.getBadcount();
-                    if ((oldstatus.equals("全勤") || oldstatus.equals("请假")) && (!sta.equals("全勤") && !sta.equals("请假"))) {
-                        badcount = badcount + 1;
-                    } else if ((!oldstatus.equals("全勤") && !oldstatus.equals("请假")) && (sta.equals("全勤") || sta.equals("请假"))) {
-                        badcount = badcount - 1;
+        if(listviewmethod.equals(flagdianming)){
+            builder.setNegativeButton("下一个", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (ischanged) {
+                        ischanged = false;
+                        String sta = studentdianming.getStatus();
+                        double badcount = studentdianming.getBadcount();
+                        if ((oldstatus.equals("全勤") || oldstatus.equals("请假")) && (!sta.equals("全勤") && !sta.equals("请假"))) {
+                            badcount = badcount + 1;
+                        } else if ((!oldstatus.equals("全勤") && !oldstatus.equals("请假")) && (sta.equals("全勤") || sta.equals("请假"))) {
+                            badcount = badcount - 1;
+                        }
+                        if (listviewmethod.equals(flagsousuo)) {
+                            String stuno = studentdianming.getStu_no();
+                            int index = mStudents.indexOf(new Student(stuno, "", "", 0, 0));
+                            Student student = mStudents.get(index);
+                            student.setBad(badcount);
+                        }
+                        studentdianming.setBadcount(badcount);
+                        //更新数据库
+                        updatedianming(studentdianming);
+                        publishprogress(position);
                     }
-                    if (listviewmethod.equals(flagsousuo)) {
-                        String stuno = studentdianming.getStu_no();
-                        int index = mStudents.indexOf(new Student(stuno, "", "", 0, 0));
-                        Student student = mStudents.get(index);
-                        student.setBad(badcount);
+                    int newposition = position;
+                    newposition++;
+                    if (newposition == mStudentdianmings.size()) {
+                        Toast.makeText(MainActivity.this, "点名完成!", Toast.LENGTH_LONG).show();
+                    } else {
+                        initdianming(newposition);
+                        mAlertDialog_dianming.show();
                     }
-                    studentdianming.setBadcount(badcount);
-                    //更新数据库
-                    updatedianming(studentdianming);
-                    publishprogress(position);
                 }
-                int newposition = position;
-                newposition++;
-                if (newposition == mStudentdianmings.size()) {
-                    Toast.makeText(MainActivity.this, "点名完成!", Toast.LENGTH_LONG).show();
-                } else {
-                    initdianming(newposition);
-                    mAlertDialog_dianming.show();
-                }
-            }
-        });
+            });
+        }
         builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
